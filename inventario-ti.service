@@ -1,0 +1,16 @@
+[Unit]
+Description=Inventário de TI - Sistema de Gestão de Ativos
+After=network.target
+
+[Service]
+Type=simple
+User=administrator
+WorkingDirectory=/opt/inventario-ti
+Environment="NODE_ENV=production"
+Environment="PORT=8080"
+ExecStart=/home/administrator/.local/share/pnpm/pnpm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
