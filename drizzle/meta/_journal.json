@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1778532369805,
+      "tag": "0000_aspiring_barracuda",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1779392896950,
+      "tag": "0001_tearful_war_machine",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1779723002561,
+      "tag": "0002_safe_living_lightning",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { trpc } from "@/lib/trpc";
+import { Plus, Trash2, Edit2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+
+interface SystemAccess {
+  id: number;
+  system: {
+    id: number;
+    name: string;
+    category: string | null;
+  } | null;
+  profile: {
+    id: number;
+    name: string;
+    description: string | null;
+  } | null;
+  notes: string | null;
+  grantedAt: Date;
+}
+
+interface SystemAccessSelectorProps {
+  inventoryRecordId: number;
+  userName: string;
+}
+
+export function SystemAccessSelector({
+  inventoryRecordId,
+  userName,
+}: SystemAccessSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedSystemId, setSelectedSystemId] = useState<number | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [notes, setNotes] = useState("");
+  const [editingAccessId, setEditingAccessId] = useState<number | null>(null);
+
+  // Queries
+  const { data: systems = [], isLoading: isLoadingSystems } =
+    trpc.systems.listSystems.useQuery();
+  const { data: accessProfiles = [], isLoading: isLoadingProfiles } =
+    trpc.systems.getAccessProfiles.useQuery(
+      { systemId: selectedSystemId || 0 },
+      { enabled: !!selectedSystemId }
+    );
+  const { data: collaboratorAccess = [], isLoading: isLoadingAccess } =
+    trpc.systems.getCollaboratorAccess.useQuery({
+      inventoryRecordId,
+    });
+
+  // Mutations
+  const utils = trpc.useUtils();
+  const addAccessMutation = trpc.systems.addSystemAccess.useMutation({
+    onSuccess: () => {
+      toast.success("Acesso adicionado com sucesso!");
+      resetForm();
+      utils.systems.getCollaboratorAccess.invalidate();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao adicionar acesso: ${error.message}`);
+    },
+  });
+
+  const updateAccessMutation = trpc.systems.updateSystemAccess.useMutation({
+    onSuccess: () => {
+      toast.success("Acesso atualizado com sucesso!");
+      resetForm();
+      utils.systems.getCollaboratorAccess.invalidate();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao atualizar acesso: ${error.message}`);
+    },
+  });
+
+  const removeAccessMutation = trpc.systems.removeSystemAccess.useMutation({
+    onSuccess: () => {
+      toast.success("Acesso removido com sucesso!");
+      utils.systems.getCollaboratorAccess.invalidate();
+    },
+    onError: (error) => {
+      toast.error(`Erro ao remover acesso: ${error.message}`);
+    },
+  });
+
+  const resetForm = () => {
+    setSelectedSystemId(null);
+    setSelectedProfileId(null);
+    setNotes("");
+    setEditingAccessId(null);
+    setIsOpen(false);
+  };
+
+  const handleAddOrUpdate = async () => {
+    if (!selectedSystemId || !selectedProfileId) {
+      toast.error("Por favor, selecione um sistema e um perfil de acesso");
+      return;
+    }
+
+    if (editingAccessId) {
+      await updateAccessMutation.mutateAsync({
+        accessId: editingAccessId,
+        accessProfileId: selectedProfileId,
+        notes: notes || undefined,
+      });
+    } else {
+      await addAccessMutation.mutateAsync({
+        inventoryRecordId,
+        systemId: selectedSystemId,
+        accessProfileId: selectedProfileId,
+        notes: notes || undefined,
+      });
+    }
+  };
+
+  const handleEdit = (access: SystemAccess) => {
+    setEditingAccessId(access.id);
+    setSelectedSystemId(access.system?.id || null);
+    setSelectedProfileId(access.profile?.id || null);
+    setNotes(access.notes || "");
+    setIsOpen(true);
+  };
+
+  const handleRemove = async (accessId: number) => {
+    if (
+      confirm(
+        "Tem certeza que deseja remover este acesso? Esta a

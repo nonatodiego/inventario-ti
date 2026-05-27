@@ -1,0 +1,13 @@
+import { Card } from '@/components/ui/card';
+import { trpc } from '@/lib/trpc';
+import { Loader } from 'lucide-react';
+
+export function AdminDashboard() {
+  const { data: stats, isLoading } = trpc.systems.getStatistics.useQuery();
+
+  if (isLoading) {
+    return (
+      <Card className="p-8">
+        <div className="flex items-center justify-center gap-2">
+          <Loader className="w-5 h-5 animate-spin" />
+          <span>Carregando estat

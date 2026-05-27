@@ -1,0 +1,35 @@
+[Unit]
+Description=Inventário de TI - Production Service
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=inventario
+Group=inventario
+WorkingDirectory=/opt/inventario-ti
+Environment="NODE_ENV=production"
+Environment="PORT=4000"
+EnvironmentFile=/opt/inventario-ti/.env.production
+
+# Comando para iniciar a aplicação
+ExecStart=/usr/bin/node /opt/inventario-ti/dist/index.js
+
+# Reiniciar automaticamente se falhar
+Restart=always
+RestartSec=10
+
+# Limites de recursos
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# Logs
+StandardOutput=append:/opt/inventario-ti/logs/app.log
+StandardError=append:/opt/inventario-ti/logs/error.log
+SyslogIdentifier=inventario-ti
+
+# Timeouts
+StartLimitInterval=60
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target

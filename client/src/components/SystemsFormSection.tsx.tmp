@@ -1,0 +1,46 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { X, Loader2 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+
+interface SystemAccess {
+  systemId: number;
+  systemName: string;
+  profileId: number;
+  profileName: string;
+}
+
+interface SystemsFormSectionProps {
+  selectedSystems: SystemAccess[];
+  onSystemsChange: (systems: SystemAccess[]) => void;
+}
+
+export function SystemsFormSection({ selectedSystems, onSystemsChange }: SystemsFormSectionProps) {
+  const [selectedSystemId, setSelectedSystemId] = useState<string>('');
+  const [selectedProfileId, setSelectedProfileId] = useState<string>('');
+
+  // Load systems using tRPC hook
+  const { data: systems = [], isLoading: isLoadingSystems } = trpc.systems.listSystems.useQuery();
+
+  // Load profiles for selected system
+  const { data: currentProfiles = [], isLoading: isLoadingProfiles } = trpc.systems.getAccessProfiles.useQuery(
+    { systemId: parseInt(selectedSystemId) },
+    { enabled: !!selectedSystemId }
+  );
+
+  const handleAddSystem = () => {
+    if (!selectedSystemId || !selectedProfileId) {
+      alert('Selecione um sistema e um perfil de acesso');
+      return;
+    }
+
+    const systemIdNum = parseInt(selectedSystemId);
+    const profileIdNum = parseInt(selectedProfileId);
+    
+    const system = systems.find(s => s.id === systemIdNum);
+    const profile = currentProfiles.find(p => p.id === profileIdNum);
+
+    if (!system || !profile) {
+      alert('Sistema ou perfil n
